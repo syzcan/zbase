@@ -1,0 +1,3 @@
+<%for(user in users){%>
+${userLP.index} ${user.name} ${user.age}
+<%}%>

@@ -1,0 +1,24 @@
+<script type="text/javascript">
+	function jumpPage(obj) {
+		$(obj).parents('form').find('input[name="currentPage"]').val($(obj).attr('data-num'));
+		$(obj).parents('form').submit();
+	}
+</script>
+<input type="hidden" name="currentPage" value="${page.currentPage}" />
+<!-- 分页 -->
+<div class="margin">
+	<ul class="pagination border-main">
+		<% if(page.currentPage!=1&&page.totalPage!=0){ %>
+			<li><a href="javascript:;" onclick="jumpPage(this);" data-num="1" title="首页">«</a></li>
+		<% } %>
+		<% for(num in page.nums){ %>
+			<li ${num==page.currentPage||page.currentPage==0?' class="active"':'' }><a href="javascript:;" ${num!=page.currentPage&&page.currentPage!=0?'onclick="jumpPage(this);"':'' }
+				data-num="${num }">${num }</a></li>
+		<% } %>
+		<% if(page.currentPage!=page.totalPage&&page.totalPage!=0){ %>
+			<li><a href="javascript:;" onclick="jumpPage(this);" data-num="${page.totalPage}" title="末页">»</a></li>
+		<% } %>
+		<li><a>共<span class="text-yellow">${page.totalPage }</span>页</a></li>
+	</ul>
+</div>
+<!-- 分页END -->

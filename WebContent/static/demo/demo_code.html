@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<title>月光边境</title>
+<meta name="keywords" content="关键词" />
+<meta name="description" content="描述" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/zbase/static/css/pintuer.css" />
+<link rel="stylesheet"
+	href="/zbase/plugins/SyntaxHighlighter/shCoreDefault.css" />
+<script type="text/javascript" src="/zbase/static/js/jquery.js"></script>
+<script type="text/javascript"
+	src="/zbase/plugins/SyntaxHighlighter/shCore.js"></script>
+</head>
+<body>
+	<div class="container">
+		<div class="margin-bottom">
+			<pre class="brush:java;toolbar:false;quick-code:false">
+@Controller
+@RequestMapping(value = "/demo")
+public class DemoController extends BaseController {
+	private final static Logger logger = Logger.getLogger(DemoController.class);
+	@Autowired
+	private DemoService demoService;
+
+	/**
+	 * 查询demo详情data
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/data")
+	public PageData data(Demo demo) {
+		PageData pd = new PageData("errMsg", "success");
+		demo = demoService.loadDemo(demo);
+		pd.put("data", demo);
+		return pd;
+	}
+}
+		</pre>
+		</div>
+		<div class="margin-bottom">
+			<pre class="brush:html;toolbar:false;quick-code:false">&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-cn"&gt;
+&lt;head&gt;
+&lt;title&gt;月光边境&lt;/title&gt;
+&lt;meta name="keywords" content="关键词" /&gt;
+&lt;meta name="description" content="描述" /&gt;
+&lt;meta http-equiv="Content-Type" content="text/html; charset=utf-8" /&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;%@ include file="/WEB-INF/jsp/common/style.jsp"%&gt;
+&lt;/head&gt;
+&lt;body&gt;
+	
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+		</div>
+		<div class="margin-bottom">
+			<pre class="brush:js;toolbar:false;quick-code:false">this.formJson = function($form) {
+	var array = $form.serializeArray();
+	var json = {};
+	$.each(array,
+	function(i, field) {
+		if (json[field.name]) {
+			if ($.isArray(json[field.name])) {
+				json[field.name].push(field.value);
+			} else {
+				json[field.name] = [json[field.name], field.value];
+			}
+		} else {
+			json[field.name] = field.value;
+		}
+	});
+	return json;
+}</pre>
+		</div>	
+	</div>
+</body>
+<script type="text/javascript">
+	//代码高亮<pre class="brush:html/java/xml/sql..;toolbar:false;quick-code:false">code</pre>
+	SyntaxHighlighter.highlight();
+</script>
+</html>

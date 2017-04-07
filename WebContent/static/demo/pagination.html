@@ -1,0 +1,27 @@
+<input type="hidden" name="currentPage" value="${page.currentPage}" />
+<!-- 分页 -->
+<div class="margin">
+	<ul class="pagination pagination-group border-main">
+		<!-- for: ${page.nums} as ${num} -->
+		<!-- if: ${num}==${page.currentPage}||${page.currentPage}==0 -->
+		<li class="active"><a href="javascript:;" data-num="${num }"
+			onclick="jumpPage(this)">${num }</a></li>
+		<!-- else -->
+		<li><a href="javascript:;" data-num="${num }"
+			onclick="jumpPage(this)">${num }</a></li>
+		<!-- /if -->
+		<!-- /for -->
+		<li><a>共${page.totalPage }页 </a></li>
+	</ul>
+	<div class="button-group">
+		<select name="showCount" class="input border-main" onchange="pageRender()">
+			<option value="10">10</option>
+			<option value="20">20</option>
+			<option value="40">40</option>
+			<option value="80">80</option>
+		</select>
+		<script>
+			$('select[name="showCount"]').val('${page.showCount}');
+		</script>
+	</div>
+</div>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<title>月光边境</title>
+<meta name="keywords" content="关键词" />
+<meta name="description" content="描述" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/zbase/static/css/pintuer.css" />
+<link rel="stylesheet"
+	href="/zbase/plugins/umeditor/themes/default/css/umeditor.css" />
+<script type="text/javascript" src="/zbase/static/js/jquery.js"></script>
+<script type="text/javascript" src="/zbase/static/js/zcommon.js"></script>
+<script type="text/javascript" src="/zbase/plugins/layer/layer.js"></script>
+<script type="text/javascript" src="/zbase/plugins/laydate/laydate.js"></script>
+<script type="text/javascript"
+	src="/zbase/plugins/umeditor/umeditor.config.js"></script>
+<script type="text/javascript"
+	src="/zbase/plugins/umeditor/umeditor.min.js"></script>
+<script type="text/javascript"
+	src="/zbase/plugins/umeditor/third-party/template.min.js"></script>
+<script type="text/javascript"
+	src="/zbase/plugins/jquery.masonry.min.js"></script>
+</head>
+<body>
+	<div class="margin" style="width: 600px;">
+		<div class="border border-blue" id="messageBox"
+			style="height: 300px; overflow-y: scroll">
+			<div class="line marggin-small margin-bottom">
+				<div class="x2 text-right">
+					<div style="width: 60px; text-align: center; float: right;">
+						<img src="/zbase/static/demo/avatar.png" width="64" height="64"
+							class="img-responsive img-border radius-circle"> <strong>陆毅</strong>
+					</div>
+				</div>
+				<div class="x10">
+					<div class="popo">
+						<div>
+							<div class="popo-body popo-blue left radius box-shadow">我是世界上最帅的男人，你知道么？</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="line marggin-small margin-bottom">
+				<div class="x10">
+					<div class="popo">
+						<div>
+							<div class="popo-body popo-green right radius box-shadow">谁？你说谁？葛优大哥才是最帅的男人！</div>
+						</div>
+					</div>
+				</div>
+				<div class="x2 text-left">
+					<div style="width: 60px; text-align: center;">
+						<img src="/zbase/static/image/avatar.jpg" width="64" height="64"
+							class="img-responsive img-border radius-circle"> <strong>男百合</strong>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="">
+			<textarea id="sendBox" style="width: 100%; height: 200px;-webkit-box-sizing: content-box;-moz-box-sizing: content-box;box-sizing: content-box;"></textarea>
+		</div>
+	</div>
+	<button onclick="send()">发送消息</button>
+	<hr />
+	<button onclick="closeWebSocket()">关闭WebSocket连接</button>
+	<hr />
+	<div id="message"></div>
+</body>
+
+<script type="text/javascript">
+	//var editor = UM.getEditor('sendBox');
+	var editor = UM.getEditor('sendBox', {
+		toolbar : ['bold italic forecolor fontfamily fontsize emotion image video preview fullscreen'],
+		autoHeightEnabled : true,
+		autoFloatEnabled : true,
+		enterTag: 'br'
+	});
+	editor.addListener("focus", function (type, event) {
+	    if ($.trim(editor.getContent()) == "") {
+	        editor.setContent("");
+	    }
+	});
+	var websocket = null;
+	//判断当前浏览器是否支持WebSocket
+	if ('WebSocket' in window) {
+		websocket = new WebSocket("ws://localhost:7080/zbase/websocket?uid=xx");
+	} else {
+		alert('当前浏览器 Not support websocket')
+	}
+
+	//连接发生错误的回调方法
+	websocket.onerror = function() {
+		setMessageInnerHTML("WebSocket连接发生错误");
+	};
+
+	//连接成功建立的回调方法
+	websocket.onopen = function() {
+		//setMessageInnerHTML("WebSocket连接成功");
+	}
+
+	//接收到消息的回调方法
+	websocket.onmessage = function(event) {
+		setMessageInnerHTML(event.data);
+	}
+
+	//连接关闭的回调方法
+	websocket.onclose = function() {
+		//setMessageInnerHTML("WebSocket连接关闭");
+	}
+
+	//监听窗口关闭事件，当窗口关闭时，主动去关闭websocket连接，防止连接还没断开就关闭窗口，server端会抛异常。
+	window.onbeforeunload = function() {
+		closeWebSocket();
+	}
+
+	//将消息显示在网页上
+	function setMessageInnerHTML(data) {
+		//document.getElementById('message').innerHTML += innerHTML + '<br/>';
+		var data = JSON.parse(data);
+		var $msg = $($('#myTl').html());
+		$msg.find('.popo-body').html(data.msg);
+		$('#messageBox').append($msg);		
+	}
+
+	//关闭WebSocket连接
+	function closeWebSocket() {
+		websocket.close();
+	}
+
+	//发送消息
+	function send() {
+		var message = editor.getContent();
+		websocket.send(message);
+		editor.setContent('');
+	}
+	//相册调用
+	layer.photos({
+		photos : '#messageBox'
+	});
+</script>
+<script type="text/html" id="myTl">
+<div class="line marggin-small margin-bottom">
+				<div class="x10">
+					<div class="popo">
+						<div>
+							<div class="popo-body popo-green right radius box-shadow"></div>
+						</div>
+					</div>
+				</div>
+				<div class="x2 text-left">
+					<div style="width: 60px; text-align: center;">
+						<img src="/zbase/static/image/avatar.jpg" width="64" height="64"
+							class="img-responsive img-border radius-circle"> <strong>男百合</strong>
+					</div>
+				</div>
+			</div>
+</script>
+<script type="text/html" id="yourTl">
+<div class="line marggin-small margin-bottom">
+				<div class="x2 text-right">
+					<div style="width: 60px; text-align: center; float: right;">
+						<img src="/zbase/static/demo/avatar.png" width="64" height="64"
+							class="img-responsive img-border radius-circle"> <strong>陆毅</strong>
+					</div>
+				</div>
+				<div class="x10">
+					<div class="popo">
+						<div>
+							<div class="popo-body popo-blue left radius box-shadow">${msg}</div>
+						</div>
+					</div>
+				</div>
+			</div>
+</script>
+</html>

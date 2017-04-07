@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<title>月光边境-beetl</title>
+<meta name="keywords" content="关键词" />
+<meta name="description" content="描述" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<% include("/common/style.html"){} %>
+</head>
+<body>
+	<div class="margin">
+		<div class="panel">
+			<div class="panel-head">
+				<form action="${ctxPath}/demo/list">
+					<input type="button" class="button border-green" value="新增" onclick="openFrame('新增','${ctxPath}/demo/toAdd')" />
+					<input type="button" class="button border-red" value="删除" onclick="deleteForm('dataForm','${ctxPath}/demo/deleteAll')" />
+					<input name="keyword" value="${pd.keyword }" type="text" style="margin-left: 50px" class="input input-auto border-main" placeholder="输入关键字"> 
+					<input type="submit" value="搜索" class="button  bg-main" style="border-left: 0 none;margin-left: -10px;border-top-left-radius:0;border-bottom-left-radius:0" />
+				</form>
+			</div>
+			<form id="dataForm" method="post">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th><input type="checkbox" class="checkall" name="checkall" checkfor="id" /></th>
+							<th>avatar</th>
+							<th>id</th>
+							<th>name</th>
+							<th>birthday</th>
+							<th>money</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+					<% for(demo in demos){ %>
+						<tr>
+							<td>
+								<input type="checkbox" name="id" value="${demo.id }" />
+							</td>
+							<td><img src="/zbase/${demo.avatar}"/></script></td>
+							<td>${demo.id}</td>
+							<td>${demo.name}</td>
+							<td>${demo.birthday,'yyyy-MM-dd'}</td>
+							<td>${demo.money}</td>
+							<td>
+								<a class="button border-blue button-little" href="javascript:;" onclick="openFrame('修改','${ctxPath}/demo/toEdit?id=${demo.id }')">修改</a> 
+								<a class="button border-yellow button-little" href="javascript:;" onclick="deleteData('${ctxPath}/demo/delete?id=${demo.id }')">删除</a>
+							</td>
+						</tr>
+					<% } %>
+				</table>
+			</form>
+			<div class="panel-foot text-center">
+				<form action="${ctxPath}/demo/list">
+					<input type="hidden" name="keyword" value="${pd.keyword}"/>
+					<% include("/common/pagination.html"){} %>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<title>月光边境-thymeleaf</title>
+<meta name="keywords" content="关键词" />
+<meta name="description" content="描述" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<th:block th:include="common/style::style"/>
+</head>
+<body>
+	<div class="margin">
+		<div class="panel">
+			<div class="panel-head">
+				<form th:action="@{/demo/th/list}">
+					<input type="button" class="button border-green" value="新增" data-way="add" data-url="demo/toAdd" />
+					<input type="button" class="button border-red" value="删除" data-way="deleteAll" data-url="demo/deleteAll" />
+					<input name="keyword" th:value="${pd[keyword] }" type="text" style="margin-left: 50px" class="input input-auto border-main" placeholder="输入关键字"> 
+					<input type="submit" value="搜索" class="button  bg-main" style="border-left: 0 none;margin-left: -10px;border-top-left-radius:0;border-bottom-left-radius:0" />
+				</form>
+			</div>
+			<form id="dataForm" method="post">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th><input type="checkbox" class="checkall" name="checkall" checkfor="id" /></th>
+							<th>avatar</th>
+							<th>id</th>
+							<th>name</th>
+							<th>birthday</th>
+							<th>money</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+						<tr th:each="demo:${demos}">
+							<td>
+								<input type="checkbox" name="id" th:value="${demo.id }" />
+							</td>
+							<td><img th:src="@{'/'+${demo.avatar}}"/></script></td>
+							<td th:text="${demo.id}"></td>
+							<td th:text="${demo.name}"></td>
+							<td th:text="${#dates.format(demo.birthday,'yyyy-MM-dd')}"></td>
+							<td th:text="${demo.money}"></td>
+							<td>
+								<a class="button border-blue button-little" href="javascript:;" data-way="edit" th:attr="data-url=@{demo/toEdit(id=${demo.id})}">修改</a> 
+								<a class="button border-yellow button-little" href="javascript:;" data-way="delete" th:attr="data-url=@{demo/delete(id=${demo.id})}">删除</a>
+							</td>
+						</tr>
+				</table>
+			</form>
+			<div class="panel-foot text-center">
+				<form th:action="@{/demo/th/list}">
+					<input type="hidden" name="keyword" th:value="${pd[keyword]}"/>
+					<th:block th:include="common/pagination::pagination"/>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	$(function(){
+		$('*[data-way]').each(function(){
+			var $this = $(this);
+			var way = $this.attr('data-way');
+			$this.click(function(){
+				if(way=='add'){
+					openFrame('新增',ctx+$this.attr('data-url'));
+				}else if(way=='edit'){
+					openFrame('修改',ctx+$this.attr('data-url'));
+				}else if(way=='delete'){
+					deleteData(ctx+$(this).attr('data-url'));
+				}else if(way=='deleteAll'){
+					deleteForm('dataForm',ctx+$(this).attr('data-url'));
+				}
+			});
+		});
+	});
+</script>
+</html>

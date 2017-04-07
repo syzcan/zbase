@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<title>月光边境</title>
+<meta name="keywords" content="关键词" />
+<meta name="description" content="描述" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/zbase/static/css/pintuer.css" />
+<script type="text/javascript" src="/zbase/static/js/jquery.js"></script>
+<script type="text/javascript" src="/zbase/static/js/zcommon.js"></script>
+<script type="text/javascript" src="/zbase/plugins/layer/layer.js"></script>
+<script type="text/javascript" src="/zbase/plugins/laydate/laydate.js"></script>
+<script type="text/javascript"
+	src="/zbase/plugins/umeditor/third-party/template.min.js"></script>
+<script type="text/javascript" src="/zbase/plugins/jquery.masonry.min.js"></script>
+</head>
+<body>
+	<!-- 列表模板 -->
+	<div class="margin">
+		<div class="panel">
+			<div class="panel-head">
+				<form id="searchForm">
+					<input type="button" class="button border-green" value="新增"
+						onclick="openForm()" /> 
+					<input name="keyword"
+						value="" type="text" style="margin-left: 50px"
+						class="input input-auto border-main" placeholder="输入关键字">
+					<input type="button" value="搜索" onclick="searchRender()" class="button bg-main"
+						style="border-left: 0 none; margin-left: -10px; border-top-left-radius: 0; border-bottom-left-radius: 0" />
+					<div class="float-right text-large">
+						<span class="icon-list text-main" data-target="list" onclick="changeView(this)"></span>
+					</div>
+				</form>
+			</div>
+			<form id="listTpl" method="post">
+				<table class="table table-hover" data-view="list">
+					<thead>
+						<tr>
+							<th>avatar</th>
+							<th>id</th>
+							<th>name</th>
+							<th>birthday</th>
+							<th>money</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+					<tbody>
+						<!-- for: ${data} as ${demo} -->
+						<tr>
+							<td><img src="/zbase/${demo.avatar}"/></script></td>
+							<td>${demo.id}</td>
+							<td>${demo.name}</td>
+							<td>${demo.birthday}</td>
+							<td>${demo.money}</td>
+							<td><a class="button border-blue button-little"
+								href="javascript:;" onclick="openForm('${demo.id }')">修改</a> <a
+								class="button border-yellow button-little" href="javascript:;"
+								onclick="deleteForm('${demo.id }')">删除</a></td>
+						</tr>
+						<!-- /for -->
+					</tbody>
+				</table>
+				<div id="waterfall" class="margin" data-view="thumb">
+					<!-- for: ${data} as ${demo} -->
+					<div class="float-left padding margin-left margin-top border item" style="width:170px">
+						<div style="width:150px;height:130px"><img src="/zbase/${demo.avatar}"/></div>
+						<div class="margin-top">${demo.remark}</div>
+						<div class="margin-top text-small">${demo.name} ${demo.birthday}</div>
+					</div>
+					<!-- /for -->
+					<div class="clearfix"></div>
+				</div>
+			</form>
+		</div>
+		<div class="panel-foot text-center">
+			<form id="pageForm">
+				<input type="hidden" name="keyword" value="${page.pd.keyword }" />
+			</form>
+		</div>
+	</div>
+	<!-- 表单模板 -->
+	<div id="formTpl" style="display: none">
+		<form class="form-x">
+			<div class="padding">
+				<div class="padding">
+					<input type="hidden" name="id" value="${data.id }" />
+					<div class="form-group">
+						<div class="label">
+							<label>name</label>
+						</div>
+						<div class="field">
+							<input type="text" class="input input-auto" name="name"
+								value="${data.name }" data-validate="required:必填" size="20" />
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="label">
+							<label>birthday</label>
+						</div>
+						<div class="field">
+							<input type="text" class="input input-auto" name="birthday"
+								value="${data.birthday }" onclick="laydate()"
+								readonly="readonly" size="20" />
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="label">
+							<label>money</label>
+						</div>
+						<div class="field">
+							<input type="text" class="input input-auto" name="money"
+								value="${data.money }" data-validate="required:必填,number:请填写数字"
+								size="20" />
+						</div>
+					</div>
+				</div>
+				<div class="padding text-right">
+					<button class="button bg-green" type="button"
+						onclick="saveForm(this)">保存</button>
+				</div>
+			</div>
+			<script type="text/javascript" src="/zbase/static/js/pintuer.js"></script>
+		</form>
+	</div>
+</body>
+<script type="text/javascript">
+	//加载分页模板
+	$.ajax({
+		url : '/zbase/static/demo/pagination.html',
+		async : false,
+		success : function(data) {
+			$('#pageForm').append(data)
+		}
+	});
+	var listTpl = $('*[data-view="list"]').prop('outerHTML');
+	var thumbTpl = $('*[data-view="thumb"]').prop('outerHTML');
+	var pageTpl = $('#pageForm').html();
+	var urlDatas = '/zbase/demo/datas.json';
+	var urlData = '/zbase/demo/data.json?id=';
+	var urlAdd = '/zbase/demo/add.json';
+	var urlEdit = '/zbase/demo/edit.json';
+	var urlDelete = '/zbase/demo/delete.json?id=';
+	//渲染列表数据
+	function renderList() {
+		//模板引擎etpl渲染json数据到页面
+		$.get(urlDatas, function(data) {
+			if($('span[data-target]').attr('data-target')=='list'){
+				$('#listTpl').html(etpl.compile(listTpl)(data));
+			}else{
+				$('#listTpl').html(etpl.compile(thumbTpl)(data));
+			}
+			$('#pageForm').html(etpl.compile(pageTpl)(data));
+			$('#waterfall').masonry({
+	            itemSelector: ".item",
+	            isAnimated: false,
+	            isFitWidth: true
+	        });
+		});
+	}
+	//分页跳转
+	function jumpPage(obj) {
+		$('#pageForm').find('input[name="currentPage"]').val($(obj).attr('data-num'));
+		pageRender();
+	}
+	//分页获取数据
+	function searchRender(){
+		urlDatas = urlDatas.split('?')[0] + '?' + $('#searchForm').serialize();
+		renderList();
+	}
+	//查询获取数据
+	function pageRender(){
+		urlDatas = urlDatas.split('?')[0] + '?' + $('#pageForm').serialize();
+		renderList();
+	}
+	//异步提交表单
+	function saveForm(obj) {
+		var $form = $(obj).parents('form');
+		$form.ajaxSubmit(function() {
+			zutil.formAjax($form, function() {
+				renderList();
+			});
+		});
+	}
+	//弹出表单新增和修改
+	function openForm(id) {
+		if (id == undefined) {
+			tpl = $('#formTpl form').attr('action', urlAdd).prop('outerHTML');
+			openV(etpl.compile(tpl)());
+		} else {
+			tpl = $('#formTpl form').attr('action', urlEdit).prop('outerHTML');
+			$.get(urlData + id, function(data) {
+				openV(etpl.compile(tpl)(data));
+			});
+		}
+	}
+	//layer弹窗
+	function openV(data) {
+		layer.open({
+			type : 1,
+			skin : 'layui-layer-demo',
+			area : [ '600px', '400px' ],
+			shadeClose : true,
+			content : data
+		});
+	}
+	//layer警告删除
+	function deleteForm(id) {
+		layer.confirm('确定删除吗？', {
+			shadeClose : true,
+			btn : [ '确定' ]
+		}, function() {
+			$.get(urlDelete + id, function(data) {
+				layer.msg('操作成功');
+				renderList();
+			});
+		});
+	}
+	//首次进入加载数据
+	renderList();
+	//layer弹窗
+	function openFrame() {
+		layer.open({
+			type : 2,
+			skin : 'layui-layer-demo',
+			area : [ '600px', '400px' ],
+			shadeClose : true,
+			content : '/zbase/static/demo/demo_form.jsp'
+		});
+	}
+	//切换视图
+	function changeView(obj){
+		if($(obj).hasClass('icon-th-large')){
+			$(obj).removeClass('icon-th-large').addClass('icon-list').attr('data-target','list');
+		}else{
+			$(obj).addClass('icon-th-large').removeClass('icon-list').attr('data-target','thumb');
+		}
+		renderList();
+	}
+</script>
+</html>

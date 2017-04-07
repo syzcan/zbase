@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<title>月光边境</title>
+<meta name="keywords" content="关键词" />
+<meta name="description" content="描述" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/zbase/static/css/pintuer.css" />
+<script type="text/javascript" src="/zbase/static/js/jquery.js"></script>
+<script type="text/javascript"
+	src="/zbase/plugins/echarts.min.js"></script>
+</head>
+<body>
+	<div class="margin">
+		<!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+		<div id="bar" style="width: 600px; height: 400px;" class="float-left"></div>
+		<div id="pie" style="width: 600px; height: 400px;" class="float-left"></div>
+		<div id="line" style="width: 600px; height: 400px;" class="float-left"></div>
+		<div id="funnel" style="width: 600px; height: 400px;" class="float-left"></div>
+	</div>
+</body>
+<script type="text/javascript">
+	//基于准备好的dom，初始化echarts实例
+	var barChart = echarts.init($('#bar')[0]);
+	var pieChart = echarts.init($('#pie')[0]);
+	var lineChart = echarts.init($('#line')[0]);
+	var funnelChart = echarts.init($('#funnel')[0]);
+	$.get('/zbase/demo/datas?showCount=10000').done(function(data){
+		var xdata = new Array();
+		var dataAxis = new Array();
+		for(var i=1986;i<=1995;i++){
+			xdata.push(i);
+			var count = 0;
+			$.each(data.data,function(index,n){
+				if(n.birthday.indexOf(i)!=-1){
+					count += 1;
+				}
+			});
+			dataAxis.push(count);
+		}
+		var pieData = new Array();
+		$.each(dataAxis,function(i,n){
+			pieData.push({value:n,name:xdata[i]+'年'});
+		});
+		// 指定图表的配置项和数据
+		barChart.setOption({
+		    title: {
+		        text: '柱状图'
+		    },
+		    tooltip: {},
+		    //工具栏保存
+		    toolbox: {
+		        feature: {
+		            restore: {},
+		            saveAsImage: {}
+		        }
+		    },
+		    legend: {
+		        data:['人数']
+		    },
+		    xAxis: {
+		    	data:xdata
+		    },
+		    yAxis: {},
+		    series: [{
+		        name: '人数',
+		        type: 'bar',
+		        data:dataAxis
+		    }]
+		});
+		pieChart.setOption({
+		    title: {
+		        text: '饼状图'
+		    },
+		    tooltip : {
+		        trigger: 'item',
+		        formatter: "{a} <br/>{b} : {c} ({d}%)"
+		    },
+		    series : [
+		        {
+		            name:'人数',
+		            type:'pie',
+		            radius : '55%',
+		            center: ['50%', '50%'],
+		            data:pieData
+		        }
+		    ]
+		});
+		lineChart.setOption({
+		    title: {
+		        text: '曲线图'
+		    },
+		    tooltip: {},
+		    legend: {
+		        data:['人数']
+		    },
+		    xAxis: [{
+		    	boundaryGap : false,
+		    	data:xdata
+		    }],
+		    yAxis: [
+		    	{
+		            type : 'value'
+		        }
+		    ],
+		    series: [{
+		        name: '人数',
+		        type: 'line',
+		        data:dataAxis
+		    }]
+		});
+		funnelChart.setOption({
+			title: {
+		        text: '漏斗图'
+		    },
+		    tooltip: {
+		        trigger: 'item',
+		        formatter: "{a} <br/>{b} : {c}"
+		    },
+		    
+		    legend: {
+		        data: xdata
+		    },
+		    calculable: true,
+		    series: [
+		        {
+		            name:'人数',
+		            type:'funnel',
+		            left: '10%',
+		            top: 60,
+		            //x2: 80,
+		            bottom: 60,
+		            width: '80%',
+		            // height: {totalHeight} - y - y2,
+		            min: 0,
+		            max: 100,
+		            minSize: '0%',
+		            maxSize: '100%',
+		            sort: 'descending',
+		            gap: 2,
+		            label: {
+		                normal: {
+		                    show: true,
+		                    position: 'inside'
+		                },
+		                emphasis: {
+		                    textStyle: {
+		                        fontSize: 20
+		                    }
+		                }
+		            },
+		            data:pieData
+		        }
+		    ]        	
+		});
+		
+	});
+</script>
+</html>
