@@ -18,7 +18,7 @@
 		<div class="panel">
 			<div class="panel-head">
 				<form action="${ctx}/crawler/rule/list">
-					<input type="button" class="button border-green" value="新增" onclick="openFrame('新增','${ctx}/crawler/rule/toAdd','600px','500px')" />
+					<input type="button" class="button border-green" value="新增" onclick="openFrame('新增','${ctx}/crawler/rule/toAdd','850px','500px')" />
 				</form>
 			</div>
 			<form id="dataForm" method="post">
@@ -27,7 +27,7 @@
 						<tr>
 							<th width="50">序号</th>
 							<th>名称</th>
-							<th>类型</th>
+							<th>存储表</th>
 							<th>样本地址</th>
 							<th>操作</th>
 						</tr>
@@ -36,10 +36,10 @@
 						<tr>
 							<td align="center">${vs.count }</td>
 							<td>${rule.name }</td>
-							<td>${rule.type==1?'列表':'详情' }</td>
+							<td>${rule.craw_store }</td>
 							<td>${rule.craw_url }</td>
 							<td>
-								<a class="button border-blue button-little" href="javascript:;" onclick="openFrame('修改','${ctx}/crawler/rule/toEdit?id=${rule.id }','600px','500px')">修改</a> 
+								<a class="button border-blue button-little" href="javascript:;" onclick="openFrame('修改','${ctx}/crawler/rule/toEdit?id=${rule.id }','850px','500px')">修改</a> 
 								<a class="button border-yellow button-little" href="javascript:;" onclick="deleteData('${ctx}/crawler/rule/delete?id=${rule.id }')">删除</a>
 							</td>
 						</tr>

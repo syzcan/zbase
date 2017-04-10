@@ -1,6 +1,5 @@
 package com.zong.web.common.controller;
 
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -15,70 +14,40 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spreada.utils.chinese.ZHConverter;
 import com.zong.base.BaseController;
 import com.zong.util.JsoupUtil;
 import com.zong.util.Page;
 import com.zong.util.PageData;
 import com.zong.web.common.dao.CommonMapper;
+import com.zong.web.common.service.CommonService;
 
 @Controller
 @RequestMapping("/crawler")
 public class CrawlerController extends BaseController {
 	private static final Logger logger = LoggerFactory.getLogger(CrawlerController.class);
 	private static final ObjectMapper objectMapper = new ObjectMapper();
-	private static final ZHConverter converter = ZHConverter.getInstance(ZHConverter.SIMPLIFIED);
 	@Autowired
 	private CommonMapper commonMapper;
+	@Autowired
+	private CommonService commonService;
 
 	@RequestMapping(value = "/toCraw")
 	public String toCraw(Model model) {
-		List<PageData> rules = commonMapper.find(JsoupUtil.CRAW_RULE_TABLE, new PageData());
+		List<PageData> rules = commonService.find(JsoupUtil.CRAW_RULE_TABLE, new PageData());
 		model.addAttribute("rules", rules);
 		return "/crawler/craw_form";
 	}
 
 	@RequestMapping(value = "/toCrawDetail")
-	public String toCrawDetail(Model model) {
+	public String toCrawDetail(String craw_store, Model model) {
 		Page page = new Page();
-		page.setTable(JsoupUtil.CRAW_STORE_TABLE);
-		String[] columns = { "id", "title", "url", "rule_id", "status" };
+		page.setTable(JsoupUtil.storeTable(craw_store));
+		String[] columns = { "id", "title", "url", "status" };
 		page.getPd().put("status", 1).put("columns", columns);
-		List<PageData> stores = commonMapper.findPage(page);
+		List<PageData> stores = commonService.findPage(page);
 		model.addAttribute("stores", stores);
+		model.addAttribute("page", page);
 		return "/crawler/craw_detail";
-	}
-
-	@ResponseBody
-	@RequestMapping(value = "/list")
-	public PageData list() {
-		PageData result = new PageData("errMsg", "success");
-		try {
-			PageData request = super.getPageData();
-			String rule_id = (String) request.remove("rule_id");
-			result.put(JsoupUtil.CRAW_URL, request.getString(JsoupUtil.CRAW_URL));
-			List<PageData> datas = JsoupUtil.parseList(request);
-			for (PageData data : datas) {
-				try {
-					commonMapper.insert(JsoupUtil.CRAW_STORE_TABLE,
-							new PageData("title", converter.convert(data.getString("title")))
-									.put("url", data.getString("url")).put("create_time", new Date()).put("status", 1)
-									.put("rule_id", rule_id));
-				} catch (Exception e) {
-					logger.warn(e.toString());
-				}
-				PageData pd = commonMapper.find(JsoupUtil.CRAW_STORE_TABLE, new PageData("url", data.getString("url")))
-						.get(0);
-				data.put("status", pd.getString("status"));
-			}
-			logger.info("爬取并保存列表条目 {}", request.getString(JsoupUtil.CRAW_URL));
-			result.put("data", datas);
-			result.put("next_url", request.getString("next_url"));
-		} catch (Exception e) {
-			logger.error(e.toString(), e);
-			result.put("errMsg", "系统错误！");
-		}
-		return result;
 	}
 
 	@ResponseBody
@@ -86,32 +55,17 @@ public class CrawlerController extends BaseController {
 	public PageData detail() {
 		PageData result = new PageData("errMsg", "success");
 		PageData request = super.getPageData();
+		String craw_store = JsoupUtil.storeTable(request.getString(JsoupUtil.CRAW_STORE_TABLE));
 		try {
 			PageData data = JsoupUtil.parseDetail(request);
-			commonMapper.update(JsoupUtil.CRAW_STORE_TABLE,
-					new PageData("status", 2).put("content", converter.convert(objectMapper.writeValueAsString(data))),
+			commonService.edit(craw_store, data.put("status", 2),
 					new PageData("url", request.getString(JsoupUtil.CRAW_URL)));
 			logger.info("爬取并保存 {}", request.getString(JsoupUtil.CRAW_URL));
 		} catch (Exception e) {
 			logger.error(e.toString(), e);
 			result.put("errMsg", "系统错误！");
-			commonMapper.update(JsoupUtil.CRAW_STORE_TABLE, new PageData("status", 3),
+			commonMapper.update(craw_store, new PageData("status", 3),
 					new PageData("url", request.getString(JsoupUtil.CRAW_URL)));
-		}
-		return result;
-	}
-
-	@ResponseBody
-	@RequestMapping(value = "/data")
-	public PageData data() {
-		PageData result = new PageData("errMsg", "success");
-		PageData request = super.getPageData();
-		try {
-			PageData data = JsoupUtil.parseDetail(request);
-			result.put("data", data);
-			result.put(JsoupUtil.CRAW_URL, request.getString(JsoupUtil.CRAW_URL));
-		} catch (Exception e) {
-			logger.error(e.toString(), e);
 		}
 		return result;
 	}
@@ -119,7 +73,7 @@ public class CrawlerController extends BaseController {
 	@RequestMapping(value = "/rule/list")
 	public String rules(Model model) {
 		try {
-			List<PageData> rules = commonMapper.find(JsoupUtil.CRAW_RULE_TABLE, new PageData());
+			List<PageData> rules = commonService.find(JsoupUtil.CRAW_RULE_TABLE, new PageData());
 			model.addAttribute("rules", rules);
 		} catch (Exception e) {
 			logger.error(e.toString(), e);
@@ -135,12 +89,15 @@ public class CrawlerController extends BaseController {
 
 	@RequestMapping(value = "/rule/toEdit")
 	public String toEdit(String id, Model model) {
-		List<PageData> rules = commonMapper.find(JsoupUtil.CRAW_RULE_TABLE, new PageData("id", id));
+		List<PageData> rules = commonService.find(JsoupUtil.CRAW_RULE_TABLE, new PageData("id", id));
 		if (!rules.isEmpty()) {
 			PageData data = rules.get(0);
 			try {
-				data.put("rule_ext",
-						objectMapper.readValue(data.getString("rule_ext"), new TypeReference<List<PageData>>() {
+				data.put("list_ext",
+						objectMapper.readValue(data.getString("list_ext"), new TypeReference<List<PageData>>() {
+						}));
+				data.put("content_ext",
+						objectMapper.readValue(data.getString("content_ext"), new TypeReference<List<PageData>>() {
 						}));
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -156,8 +113,11 @@ public class CrawlerController extends BaseController {
 	public PageData add(@RequestBody PageData data) {
 		PageData result = new PageData("errMsg", "success");
 		try {
-			data.put("rule_ext", objectMapper.writeValueAsBytes(data.get("rule_ext")));
-			commonMapper.insert(JsoupUtil.CRAW_RULE_TABLE, data);
+			data.put("list_ext", objectMapper.writeValueAsString(data.get("list_ext")));
+			data.put("content_ext", objectMapper.writeValueAsString(data.get("content_ext")));
+			commonService.add(JsoupUtil.CRAW_RULE_TABLE, data);
+			// 保存表结构
+			saveStoreTable(data);
 		} catch (Exception e) {
 			logger.error(e.toString(), e);
 			result.put("errMsg", "系统错误！");
@@ -165,13 +125,42 @@ public class CrawlerController extends BaseController {
 		return result;
 	}
 
+	private void saveStoreTable(PageData ruleData) throws Exception {
+		String craw_store = ruleData.getString(JsoupUtil.CRAW_STORE_TABLE);
+		craw_store = JsoupUtil.storeTable(craw_store);
+		PageData pd = new PageData();
+		List<PageData> list_ext = objectMapper.readValue(ruleData.getString("list_ext"),
+				new TypeReference<List<PageData>>() {
+				});
+		List<PageData> content_ext = objectMapper.readValue(ruleData.getString("content_ext"),
+				new TypeReference<List<PageData>>() {
+				});
+		for (PageData data : list_ext) {
+			pd.put(data.getString(JsoupUtil.RULE_EXT_NAME), "");
+		}
+		for (PageData data : content_ext) {
+			pd.put(data.getString(JsoupUtil.RULE_EXT_NAME), "");
+		}
+		pd.remove("");
+		PageData table = commonService.findTable(craw_store);
+		PageData columns = JsoupUtil.baseTableColumns(pd);
+		if (table == null) {
+			commonService.createTable(craw_store, columns);
+		} else {
+			commonService.alterTable(craw_store, columns);
+		}
+	}
+
 	@ResponseBody
 	@RequestMapping(value = "/rule/edit/{id}")
 	public PageData edit(@PathVariable String id, @RequestBody PageData data) {
 		PageData result = new PageData("errMsg", "success");
 		try {
-			data.put("rule_ext", objectMapper.writeValueAsBytes(data.get("rule_ext")));
-			commonMapper.update(JsoupUtil.CRAW_RULE_TABLE, data, new PageData("id", id));
+			data.put("list_ext", objectMapper.writeValueAsString(data.get("list_ext")));
+			data.put("content_ext", objectMapper.writeValueAsString(data.get("content_ext")));
+			commonService.edit(JsoupUtil.CRAW_RULE_TABLE, data, new PageData("id", id));
+			// 保存表结构
+			saveStoreTable(data);
 		} catch (Exception e) {
 			logger.error(e.toString(), e);
 			result.put("errMsg", "系统错误！");
@@ -184,7 +173,7 @@ public class CrawlerController extends BaseController {
 	public PageData delete(String id) {
 		PageData result = new PageData("errMsg", "success");
 		try {
-			commonMapper.delete(JsoupUtil.CRAW_RULE_TABLE, new PageData("id", id));
+			commonService.delete(JsoupUtil.CRAW_RULE_TABLE, new PageData("id", id));
 		} catch (Exception e) {
 			logger.error(e.toString(), e);
 			result.put("errMsg", "系统错误！");
@@ -197,11 +186,14 @@ public class CrawlerController extends BaseController {
 	public PageData data(String id) {
 		PageData result = new PageData("errMsg", "success");
 		try {
-			List<PageData> rules = commonMapper.find(JsoupUtil.CRAW_RULE_TABLE, new PageData("id", id));
+			List<PageData> rules = commonService.find(JsoupUtil.CRAW_RULE_TABLE, new PageData("id", id));
 			if (!rules.isEmpty()) {
 				PageData data = rules.get(0);
-				data.put("rule_ext",
-						objectMapper.readValue(data.getString("rule_ext"), new TypeReference<List<PageData>>() {
+				data.put("list_ext",
+						objectMapper.readValue(data.getString("list_ext"), new TypeReference<List<PageData>>() {
+						}));
+				data.put("content_ext",
+						objectMapper.readValue(data.getString("content_ext"), new TypeReference<List<PageData>>() {
 						}));
 				result.put("rule", data);
 			}
@@ -212,19 +204,47 @@ public class CrawlerController extends BaseController {
 		return result;
 	}
 
+	/**
+	 * 查询是否可用craw_store
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/rule/check")
+	public PageData check(String craw_store) {
+		PageData pd = new PageData("errMsg", "success");
+		List<PageData> datas = commonService.find(JsoupUtil.CRAW_RULE_TABLE, new PageData("craw_store", craw_store));
+		if (!datas.isEmpty()) {
+			pd.put("errMsg", "已存在");
+		}
+		return pd;
+	}
+
 	@RequestMapping(value = "/store/list")
 	public String stores(Model model) {
 		try {
+			List<PageData> rules = commonService.find(JsoupUtil.CRAW_RULE_TABLE, new PageData());
 			Page page = super.getPage();
-			page.setTable(JsoupUtil.CRAW_STORE_TABLE);
 			String keyword = (String) page.getPd().remove("keyword");
+			String craw_store = (String) page.getPd().remove(JsoupUtil.CRAW_STORE_TABLE);
 			if (keyword != null) {
 				page.getPd().put("like", new PageData("content", keyword));
 			}
-			String[] columns = { "id", "title", "url", "rule_id", "status" };
+			if (craw_store == null) {
+				if (!rules.isEmpty()) {
+					String table = rules.get(0).getString(JsoupUtil.CRAW_STORE_TABLE);
+					craw_store = JsoupUtil.storeTable(table);
+					getPageData().put("craw_store", table);
+				} else {
+					craw_store = JsoupUtil.CRAW_STORE_TABLE;
+				}
+			} else {
+				craw_store = JsoupUtil.storeTable(craw_store);
+			}
+			page.setTable(craw_store);
+			String[] columns = { "id", "title", "url", "status" };
 			page.getPd().put("columns", columns);
-			List<PageData> stores = commonMapper.findPage(page);
+			List<PageData> stores = commonService.findPage(page);
 			model.addAttribute("stores", stores);
+			model.addAttribute("rules", rules);
 		} catch (Exception e) {
 			logger.error(e.toString(), e);
 			model.addAttribute("errMsg", "系统错误！");
@@ -233,11 +253,9 @@ public class CrawlerController extends BaseController {
 	}
 
 	@RequestMapping(value = "/store/view")
-	public String store(String id, Model model) {
+	public String store(String craw_store, String id, Model model) {
 		try {
-			List<PageData> stores = commonMapper.find(JsoupUtil.CRAW_STORE_TABLE, new PageData("id", id));
-			PageData store = stores.get(0);
-			store.put("content", objectMapper.readValue(store.getString("content"), PageData.class));
+			PageData store = commonService.load(JsoupUtil.storeTable(craw_store), new PageData("id", id));
 			model.addAttribute("store", store);
 		} catch (Exception e) {
 			logger.error(e.toString(), e);

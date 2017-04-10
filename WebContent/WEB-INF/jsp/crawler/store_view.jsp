@@ -17,7 +17,7 @@
 	<div class="margin">
 		<div class="panel">
 			<div class="margin">
-			${store.content.content }
+			${store.content }
 			</div>
 		</div>
 	</div>

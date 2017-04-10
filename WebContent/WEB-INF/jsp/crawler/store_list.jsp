@@ -19,12 +19,17 @@
 			<div class="panel-head">
 				<form action="${ctx}/crawler/store/list">
 					<input type="button" class="button border-blue" value="爬取列表" onclick="openFrame('爬取','${ctx}/crawler/toCraw','1000px','600px')" />
-					<input type="button" class="button border-yellow" value="爬取详情" onclick="openFrame('爬取','${ctx}/crawler/toCrawDetail','1000px','600px')" />
+					<input type="button" class="button border-yellow" value="爬取详情" onclick="toCrawDetail()" />
 					<select name="status" class="input input-auto" onchange="$(this).parent().submit()">
 					<option value="">状态</option>
 					<option value="1" ${pd.status==1?'selected':'' }>未下载</option>
 					<option value="2" ${pd.status==2?'selected':'' }>已下载</option>
 					<option value="3" ${pd.status==3?'selected':'' }>下载失败</option>
+					</select>
+					<select name="craw_store" class="input input-auto" onchange="$(this).parent().submit()">
+					<c:forEach items="${rules }" var="rule">
+					<option data-id="${rule.id }" value="${rule.craw_store }" ${pd.craw_store==rule.craw_store?'selected':'' }>${rule.name }</option>
+					</c:forEach>
 					</select>
 					<input name="keyword" value="${pd.keyword }" type="text" style="margin-left: 50px" class="input input-auto border-main" placeholder="输入关键字"> 
 					<input type="submit" value="搜索" class="button  bg-main" style="border-left: 0 none;margin-left: -10px;border-top-left-radius:0;border-bottom-left-radius:0" />
@@ -52,7 +57,7 @@
 							${store.status==3?'<span class="badge bg-red">下载失败</span>':'' }
 							</td>
 							<td>
-								<a class="button border-blue button-little" href="${ctx}/crawler/store/view?id=${store.id }" target="_blank">查看</a> 
+								<a class="button border-blue button-little" href="javascript:;" onclick="toView('${store.id}')" >查看</a> 
 							</td>
 						</tr>
 					</c:forEach>
@@ -60,6 +65,7 @@
 			</form>
 			<div class="panel-foot text-center">
 				<form action="${ctx}/crawler/store/list">
+					<input type="hidden" name="craw_store" value="${pd.craw_store }" />
 					<input type="hidden" name="keyword" value="${pd.keyword }" />
 					<input type="hidden" name="status" value="${pd.status }" />
 					<%@ include file="/WEB-INF/jsp/common/pagination.jsp"%>
@@ -69,4 +75,15 @@
 	</div>
 	<%@ include file="/WEB-INF/jsp/common/foot.jsp"%>
 </body>
+<script type="text/javascript">
+function toCrawDetail(){
+	var rule_id = $('select[name="craw_store"]').find("option:selected").attr('data-id');
+	var craw_store = $('select[name="craw_store"]').find("option:selected").val();
+	openFrame('爬取','${ctx}/crawler/toCrawDetail?rule_id='+rule_id+'&craw_store='+craw_store,'1000px','600px');
+}
+function toView(id){
+	var craw_store = $('select[name="craw_store"]').find("option:selected").val();
+	window.open('${ctx}/crawler/store/view?craw_store='+craw_store+'&id='+id);
+}
+</script>
 </html>
