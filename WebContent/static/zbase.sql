@@ -4,7 +4,7 @@ Navicat MySQL Data Transfer
 Source Server         : zong
 Source Server Version : 50087
 Source Host           : localhost:3306
-Source Database       : zz
+Source Database       : zbase
 
 Target Server Type    : MYSQL
 Target Server Version : 50087
