@@ -72,7 +72,7 @@ public class SysRoleController extends BaseController {
 	 * @return
 	 */
 	private String ztreeJson(String roleId){
-		List<PageData> datas = new ArrayList<>();
+		List<PageData> datas = new ArrayList<PageData>();
 		List<SysMenu> menus = sysMenuService.findRoleMenu(new PageData("roleId",roleId));
 		for (SysMenu sysMenu : menus) {
 			datas.add(new PageData("id",sysMenu.getId()).put("pId", sysMenu.getPid()).put("name", sysMenu.getName()).put("open", true).put("checked", sysMenu.isChecked()));

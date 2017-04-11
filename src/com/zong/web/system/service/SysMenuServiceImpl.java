@@ -112,8 +112,8 @@ public class SysMenuServiceImpl implements SysMenuService {
 	}
 
 	public List<SysMenu> packageMenu(List<SysMenu> menus){
-    	List<SysMenu> firstList = new ArrayList<>();
-    	List<SysMenu> secondList = new ArrayList<>();
+    	List<SysMenu> firstList = new ArrayList<SysMenu>();
+    	List<SysMenu> secondList = new ArrayList<SysMenu>();
     	Iterator<SysMenu> iterator = menus.iterator();
 		// 筛选一级菜单
 		while (iterator.hasNext()) {

@@ -27,7 +27,7 @@ public class BeetlTest {
 			GroupTemplate gt = new GroupTemplate(fileLoader, cfg);
 			Template t = gt.getTemplate("/zong.btl");
 			
-			List<PageData> users = new ArrayList<>();
+			List<PageData> users = new ArrayList<PageData>();
 			users.add(new PageData("name","zong1").put("age", 10));
 			users.add(new PageData("name","zong2").put("age", 20));
 			users.add(new PageData("name","zong3").put("age", 30));
