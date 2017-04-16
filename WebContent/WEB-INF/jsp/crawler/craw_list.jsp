@@ -9,6 +9,10 @@
 				<option data-url="${rule.craw_url }" value="${rule.id }">${rule.name }</option>
 			</c:forEach>
 		</select> 
+		<select id="js_enabled" class="input input-auto">
+			<option value="">JS解释器</option>
+			<option value="1">启用</option>
+		</select> 
 		<input type="text" placeholder="爬取列表地址" class="input input-auto"
 			name="craw_url" data-next="" size="50" />
 		<button class="button bg-green" type="button" onclick="craw()">解析</button>
@@ -39,9 +43,10 @@
 			return;
 		}
 		layer.load(1,{shade: 0});
-		$.get('${ctx}/crawler/rule/data.json?id=' + $('select').val()).done(
+		$.get('${ctx}/craw/rule/data.json?id=' + $('select').val()).done(
 				function(data) {
 					var rule = {};
+					rule.js_enabled = $('#js_enabled').val();
 					rule.craw_url = craw_url;
 					rule.craw_item = data.rule.craw_item;
 					rule.craw_next = data.rule.craw_next;
@@ -54,7 +59,7 @@
 						rule[n.rule_ext_name] = n.rule_ext_css + ";"
 								+ n.rule_ext_type + "["+ n.rule_ext_reg + "];" + n.rule_ext_attr + ";" + n.rule_ext_mode;
 					});
-					$.post('${ctx}/craw/list.json', rule).done(
+					$.post('${ctx}/craw/crawList.json', rule).done(
 							function(data) {
 								$('tbody').html('');
 								$.each(data.data, function(i, n) {

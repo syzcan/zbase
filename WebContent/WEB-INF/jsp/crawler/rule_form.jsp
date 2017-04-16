@@ -2,7 +2,7 @@
 	pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common/style.jsp"%>
 <form
-	action="${ctx}/crawler/rule/${formType=='edit'?'edit':'add'}${formType=='edit'?'/':''}${formType=='edit'?rule.id:'' }"
+	action="${ctx}/craw/rule/${formType=='edit'?'edit':'add'}${formType=='edit'?'/':''}${formType=='edit'?rule.id:'' }"
 	class="form-x" method="post">
 	<div class="padding-big">
 		<div class="form-group">
@@ -25,7 +25,7 @@
 				</c:if>
 				<c:if test="${formType!='edit'}">
 				<input type="text" class="input input-auto" name="craw_store"
-					value="${rule.craw_store }" data-validate="required:请填写信息,ajax#${ctx }/crawler/rule/check?craw_store=:已存在" size="20" />
+					value="${rule.craw_store }" data-validate="required:请填写信息,ajax#${ctx }/craw/rule/check?craw_store=:已存在" size="20" />
 				</c:if>
 			</div>
 		</div>
@@ -76,13 +76,16 @@
 						<option value="href">href</option>
 						<option value="src">src</option>
 						<option value="title">title</option>
+						<option value="value">value</option>
 						<option value="alt">alt</option>
 						<option value="data-src">data-src</option>
+						<option value="content">content</option>
 					</select>
 					<select class="input input-auto rule_ext_mode">
 						<option value="string">string</option>
 						<option value="array">array</option>
 					</select>
+					<input type="text" placeholder="字段描述" class="input input-auto" value="标题" readonly="readonly" size="10" />
 					<a href="javascript:;" style="display:none;" onclick="delExt(this)" class="icon-minus-circle text-big text-red"></a>
 				</div>
 				<div class="margin-bottom">
@@ -98,13 +101,16 @@
 						<option value="href">href</option>
 						<option value="src">src</option>
 						<option value="title">title</option>
+						<option value="value">value</option>
 						<option value="alt">alt</option>
 						<option value="data-src">data-src</option>
+						<option value="content">content</option>
 					</select>
 					<select class="input input-auto rule_ext_mode">
 						<option value="string">string</option>
 						<option value="array">array</option>
 					</select>
+					<input type="text" placeholder="字段描述" class="input input-auto" value="详情地址" readonly="readonly" size="10" />
 					<a href="javascript:;" style="display:none;" onclick="delExt(this)" class="icon-minus-circle text-big text-red"></a>
 				</div>
 				</c:if>
@@ -122,13 +128,16 @@
 						<option value="href"${ext.rule_ext_attr=='href'?'selected':'' }>href</option>
 						<option value="src"${ext.rule_ext_attr=='src'?'selected':'' }>src</option>
 						<option value="title"${ext.rule_ext_attr=='title'?'selected':'' }>title</option>
+						<option value="value"${ext.rule_ext_attr=='value'?'selected':'' }>value</option>
 						<option value="alt"${ext.rule_ext_attr=='alt'?'selected':'' }>alt</option>
 						<option value="data-src"${ext.rule_ext_attr=='data-src'?'selected':'' }>data-src</option>
+						<option value="content"${ext.rule_ext_attr=='content'?'selected':'' }>content</option>
 					</select>
 					<select class="input input-auto rule_ext_mode">
 						<option value="string"${ext.rule_ext_mode=='string'?'selected':'' }>string</option>
 						<option value="array"${ext.rule_ext_mode=='array'?'selected':'' }>array</option>
 					</select>
+					<input type="text" placeholder="字段描述" class="input input-auto" value="${ext.rule_ext_desc }" ${ext.rule_ext_name=='title'||ext.rule_ext_name=='url'?'readonly':'' } size="10" />
 					<a href="javascript:;" style="${ext.rule_ext_name=='title'||ext.rule_ext_name=='url'?'display:none;':'' }" onclick="delExt(this)" class="icon-minus-circle text-big text-red"></a>
 				</div>
 				</c:forEach>
@@ -142,7 +151,7 @@
 			<div class="field" id="content-ext">
 				<c:if test="${formType!='edit' }">
 				<div class="margin-bottom">
-					<input type="text" placeholder="字段名英文" class="input input-auto" value="" data-validate="required:请填写信息" size="10" />
+					<input type="text" placeholder="字段名英文" class="input input-auto" value="content" readonly="readonly" data-validate="required:请填写信息" size="10" />
 					<input type="text" placeholder="cssQuery" class="input input-auto" value="" size="30" />
 					<select class="input input-auto rule_ext_type">
 						<option value="text">text</option>
@@ -154,19 +163,22 @@
 						<option value="href">href</option>
 						<option value="src">src</option>
 						<option value="title">title</option>
+						<option value="value">value</option>
 						<option value="alt">alt</option>
 						<option value="data-src">data-src</option>
+						<option value="content">content</option>
 					</select>
 					<select class="input input-auto rule_ext_mode">
 						<option value="string">string</option>
 						<option value="array">array</option>
 					</select>
+					<input type="text" placeholder="字段描述" class="input input-auto" value="详情内容" readonly="readonly" size="10" />
 					<a href="javascript:;" style="display:none;" onclick="delExt(this)" class="icon-minus-circle text-big text-red"></a>
 				</div>
 				</c:if>
 				<c:forEach items="${rule.content_ext }" var="ext" varStatus="vs">
 				<div class="margin-bottom">
-					<input type="text" placeholder="字段名英文" class="input input-auto" value="${ext.rule_ext_name }" data-validate="required:请填写信息" size="10" />
+					<input type="text" placeholder="字段名英文" class="input input-auto" value="${ext.rule_ext_name }" ${ext.rule_ext_name=='content'?'readonly':'' } data-validate="required:请填写信息" size="10" />
 					<input type="text" placeholder="cssQuery" class="input input-auto" value="${ext.rule_ext_css }" size="30" />
 					<select class="input input-auto rule_ext_type">
 						<option value="text"${ext.rule_ext_type=='text'?'selected':'' }>text</option>
@@ -178,13 +190,16 @@
 						<option value="href"${ext.rule_ext_attr=='href'?'selected':'' }>href</option>
 						<option value="src"${ext.rule_ext_attr=='src'?'selected':'' }>src</option>
 						<option value="title"${ext.rule_ext_attr=='title'?'selected':'' }>title</option>
+						<option value="value"${ext.rule_ext_attr=='value'?'selected':'' }>value</option>
 						<option value="alt"${ext.rule_ext_attr=='alt'?'selected':'' }>alt</option>
 						<option value="data-src"${ext.rule_ext_attr=='data-src'?'selected':'' }>data-src</option>
+						<option value="content"${ext.rule_ext_attr=='content'?'selected':'' }>content</option>
 					</select>
 					<select class="input input-auto rule_ext_mode">
 						<option value="string"${ext.rule_ext_mode=='string'?'selected':'' }>string</option>
 						<option value="array"${ext.rule_ext_mode=='array'?'selected':'' }>array</option>
 					</select>
+					<input type="text" placeholder="字段描述" class="input input-auto" value="${ext.rule_ext_desc }" ${ext.rule_ext_name=='content'?'readonly':'' } size="10" />
 					<a href="javascript:;" style="${vs.count==1?'display:none;':''}" onclick="delExt(this)" class="icon-minus-circle text-big text-red"></a>
 				</div>
 				</c:forEach>
@@ -210,6 +225,7 @@
 				ext.rule_ext_reg = $(this).find(":input:eq(3)").val();
 				ext.rule_ext_attr = $(this).find(":input:eq(4)").val();
 				ext.rule_ext_mode = $(this).find(":input:eq(5)").val();
+				ext.rule_ext_desc = $(this).find(":input:eq(6)").val();
 				list_ext.push(ext);
 			});
 			$('#content-ext div').each(function(){
@@ -220,6 +236,7 @@
 				ext.rule_ext_reg = $(this).find(":input:eq(3)").val();
 				ext.rule_ext_attr = $(this).find(":input:eq(4)").val();
 				ext.rule_ext_mode = $(this).find(":input:eq(5)").val();
+				ext.rule_ext_desc = $(this).find(":input:eq(6)").val();
 				content_ext.push(ext);
 			});
 			var data = zutil.formJson($form);
@@ -239,11 +256,12 @@
 					}
 				}
 			});
+			layer.load(1);
 		});
 	}
 	function addExt(obj){
 		var $div = $(obj).parent().next();
-		var $ext = $div.children().first().clone();
+		var $ext = $div.children().first().clone(true);
 		$ext.find('input').val('').removeAttr('readonly');
 		$ext.find('a').show();
 		$div.append($ext);
@@ -258,5 +276,27 @@
 		}else{
 			$('.list-rule').show();
 		}
+	});
+	$(function(){
+		$('input[placeholder="字段名英文"]').blur(function(){
+			var $this = $(this);
+			var val = $(this).val();
+			var count = 0;
+			$('input[placeholder="字段名英文"]').each(function(){
+				if($(this).val()==val){
+					count++;
+				}
+			});
+			if(count>1){
+				$this.closest(".form-group").removeClass("check-success");
+				$this.closest(".form-group").addClass("check-error");
+				layer.tips('该字段已经存在', $this,{tipsMore: true});
+				$this.focus();
+			}else{
+				$this.closest(".form-group").removeClass("check-error");
+				$this.parent().find(".input-help").remove();
+				$this.closest(".form-group").addClass("check-success");
+			}
+		});
 	});
 </script>

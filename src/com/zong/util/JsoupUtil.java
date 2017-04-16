@@ -2,6 +2,7 @@ package com.zong.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,6 +35,7 @@ public class JsoupUtil {
 	 * a;attr[reg];href;array,其中RULE_EXT_NAME=title,参数值按;分割对应分别下面各项
 	 */
 	public static final String RULE_EXT_NAME = "rule_ext_name";
+	public static final String RULE_EXT_DESC = "rule_ext_desc";
 	public static final String RULE_EXT_CSS = "rule_ext_css";
 	// text/html/attr/url【分页方式】
 	public static final String RULE_EXT_TYPE = "rule_ext_type";
@@ -50,6 +52,9 @@ public class JsoupUtil {
 	public static final String STORE_TABLE_COL_CONTENT = "content";
 	public static final String STORE_TABLE_COL_STATUS = "status";
 	public static final String STORE_TABLE_COL_CREATE_TIME = "create_time";
+	public static final String STORE_TABLE_COL_UPDATE_TIME = "update_time";
+	// 启用Js解释器 :1启动
+	public static final String JS_ENABLED = "js_enabled";
 
 	/**
 	 * 解析列表页面
@@ -58,10 +63,16 @@ public class JsoupUtil {
 	 */
 	public static PageData parseList(PageData request) throws Exception {
 		PageData result = new PageData();
+		String js_enable = (String) request.remove(JS_ENABLED);
 		String craw_url = request.getString(CRAW_URL);
 		String craw_item = request.getString(CRAW_ITEM);
 		List<PageData> extFields = extFields(request);
-		Document document = Jsoup.connect(craw_url).timeout(60 * 1000).userAgent(USER_AGENT).get();
+		Document document = null;
+		if ("1".equals(js_enable)) {
+			document = Jsoup.parse(HtmlunitUtil.getHtml(craw_url));
+		} else {
+			document = Jsoup.connect(craw_url).timeout(60 * 1000).userAgent(USER_AGENT).get();
+		}
 		Elements elements = document.select(craw_item);
 		List<PageData> list = new ArrayList<PageData>();
 		for (Element element : elements) {
@@ -95,8 +106,14 @@ public class JsoupUtil {
 	 * @param request
 	 */
 	public static PageData parseDetail(PageData request) throws Exception {
+		String js_enabled = (String) request.remove(JS_ENABLED);
 		String craw_url = request.getString(CRAW_URL);
-		Document document = Jsoup.connect(craw_url).timeout(60 * 1000).userAgent(USER_AGENT).get();
+		Document document = null;
+		if ("1".equals(js_enabled)) {
+			document = Jsoup.parse(HtmlunitUtil.getHtml(craw_url));
+		} else {
+			document = Jsoup.connect(craw_url).timeout(60 * 1000).userAgent(USER_AGENT).get();
+		}
 		PageData data = parseExt(craw_url, document.select("body").first(), extFields(request));
 		return data;
 	}
@@ -175,6 +192,8 @@ public class JsoupUtil {
 		} else if (!link.startsWith("http") && !"".equals(link)) {
 			if (link.startsWith("/")) {
 				link = domain + link;
+			} else if (link.startsWith("?")) {
+				link = craw_url.split("\\?")[0] + link;
 			} else {
 				link = domain + "/" + link;
 			}
@@ -231,6 +250,8 @@ public class JsoupUtil {
 				} else {
 					return null;
 				}
+			} else {
+				target = es.first();
 			}
 			i++;
 		}
@@ -380,33 +401,40 @@ public class JsoupUtil {
 	/**
 	 * 构造基本存储的表结构的基本字段mysql
 	 */
-	public static PageData baseTableColumns() {
-		return new PageData(STORE_TABLE_COL_ID, "int(11) NOT NULL PRIMARY KEY auto_increment COMMENT 'mysql自增主键'")
-				.put(STORE_TABLE_COL_TITLE, "varchar(255) COMMENT '标题'")
-				.put(STORE_TABLE_COL_URL, "varchar(255) UNIQUE KEY COMMENT '详情地址，如果有详情页'")
-				.put(STORE_TABLE_COL_CONTENT, "mediumtext COMMENT '详情内容'")
-				.put(STORE_TABLE_COL_STATUS, "int(11) NOT NULL default 1 COMMENT '状态：1未解析 2已解析 3解析失败'")
-				.put(STORE_TABLE_COL_CREATE_TIME, "datetime COMMENT '创建时间'");
+	public static String baseTableColumns() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("id int(11) NOT NULL PRIMARY KEY auto_increment COMMENT 'mysql自增主键',");
+		sb.append("title varchar(255) COMMENT '标题',");
+		sb.append("url varchar(255) UNIQUE KEY COMMENT '详情地址，如果有详情页',");
+		sb.append("content mediumtext COMMENT '详情内容',");
+		sb.append("status int(11) NOT NULL default 1 COMMENT '状态：1未解析 2已解析 3解析失败',");
+		sb.append("create_time datetime COMMENT '创建时间',");
+		sb.append("update_time datetime COMMENT '修改时间',");
+		return sb.toString();
 	}
 
-	/**
-	 * 构造基本存储的表结构的基本字段，根据request追加扩展字段
-	 * 
-	 * @param request
-	 */
-	public static PageData baseTableColumns(PageData request) {
-		PageData columns = baseTableColumns();
-		for (Object key : request.keySet()) {
-			if (!key.equals(JsoupUtil.CRAW_URL) && !key.equals(JsoupUtil.CRAW_RULE_TABLE)
-					&& !key.equals(JsoupUtil.CRAW_STORE_TABLE) && !key.equals(JsoupUtil.CRAW_ITEM)
-					&& !key.equals(JsoupUtil.CRAW_NEXT) && !key.equals(STORE_TABLE_COL_ID)
-					&& !key.equals(STORE_TABLE_COL_TITLE) && !key.equals(STORE_TABLE_COL_URL)
-					&& !key.equals(STORE_TABLE_COL_CONTENT) && !key.equals(STORE_TABLE_COL_STATUS)
-					&& !key.equals(STORE_TABLE_COL_CREATE_TIME)) {
-				columns.put(key, "varchar(500)");
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static String createTableSql(PageData ruleData) {
+		List<Map> list_ext = (List<Map>) ruleData.get("list_ext");
+		List<Map> content_ext = (List<Map>) ruleData.get("content_ext");
+		List<Map> columns = new ArrayList();
+		columns.addAll(list_ext);
+		columns.addAll(content_ext);
+		String sql = "create table " + storeTable(ruleData.getString("craw_store")) + "(" + baseTableColumns();
+		for (Map data : columns) {
+			String column = data.get(RULE_EXT_NAME).toString();
+			String desc = data.get(RULE_EXT_DESC).toString();
+			if (!column.equals(JsoupUtil.CRAW_URL) && !column.equals(JsoupUtil.CRAW_RULE_TABLE)
+					&& !column.equals(JsoupUtil.CRAW_STORE_TABLE) && !column.equals(JsoupUtil.CRAW_ITEM)
+					&& !column.equals(JsoupUtil.CRAW_NEXT) && !column.equals(STORE_TABLE_COL_ID)
+					&& !column.equals(STORE_TABLE_COL_TITLE) && !column.equals(STORE_TABLE_COL_URL)
+					&& !column.equals(STORE_TABLE_COL_CONTENT) && !column.equals(STORE_TABLE_COL_STATUS)
+					&& !column.equals(STORE_TABLE_COL_CREATE_TIME) && !column.equals(STORE_TABLE_COL_UPDATE_TIME)) {
+				sql += column + " varchar(500) COMMENT '" + desc + "',";
 			}
 		}
-		return columns;
+		sql = sql.substring(0, sql.lastIndexOf(",")) + ") COMMENT='" + ruleData.getString("name") + "';";
+		return sql;
 	}
 
 	/**

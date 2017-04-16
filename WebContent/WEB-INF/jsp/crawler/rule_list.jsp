@@ -17,8 +17,8 @@
 	<div class="margin">
 		<div class="panel">
 			<div class="panel-head">
-				<form action="${ctx}/crawler/rule/list">
-					<input type="button" class="button border-green" value="新增" onclick="openFrame('新增','${ctx}/crawler/rule/toAdd','850px','500px')" />
+				<form action="${ctx}/craw/rule/list">
+					<input type="button" class="button border-green" value="新增" onclick="openFrame('新增','${ctx}/craw/rule/toAdd','980px','500px')" />
 				</form>
 			</div>
 			<form id="dataForm" method="post">
@@ -26,10 +26,10 @@
 					<thead>
 						<tr>
 							<th width="50">序号</th>
-							<th>名称</th>
+							<th width="100px">名称</th>
 							<th>存储表</th>
 							<th>样本地址</th>
-							<th>操作</th>
+							<th width="120px">操作</th>
 						</tr>
 					</thead>
 					<c:forEach items="${rules }" var="rule" varStatus="vs">
@@ -37,10 +37,10 @@
 							<td align="center">${vs.count }</td>
 							<td>${rule.name }</td>
 							<td>${rule.craw_store }</td>
-							<td>${rule.craw_url }</td>
+							<td style="word-break: break-all;">${rule.craw_url }</td>
 							<td>
-								<a class="button border-blue button-little" href="javascript:;" onclick="openFrame('修改','${ctx}/crawler/rule/toEdit?id=${rule.id }','850px','500px')">修改</a> 
-								<a class="button border-yellow button-little" href="javascript:;" onclick="deleteData('${ctx}/crawler/rule/delete?id=${rule.id }')">删除</a>
+								<a class="button border-blue button-little" href="javascript:;" onclick="openFrame('修改','${ctx}/craw/rule/toEdit?id=${rule.id }','980px','500px')">修改</a> 
+								<a class="button border-yellow button-little" href="javascript:;" onclick="deleteData('${ctx}/craw/rule/delete?id=${rule.id }',function(){location.href=location.href})">删除</a>
 							</td>
 						</tr>
 					</c:forEach>

@@ -119,13 +119,15 @@ public class LoginController extends BaseController {
 	@RequestMapping(value = "/logout")
 	public String logout(HttpServletResponse response) {
 		SysUser user = (SysUser) getSession().getAttribute(ZConst.SESSION_USER);
-		passportService.updateAuthKey(user);
-		getSession().removeAttribute(ZConst.SESSION_USER);
-		// 删除cookie的auth_key
-		Cookie cookie = new Cookie("auth_key", user.getAuthKey());
-		cookie.setMaxAge(0);
-		cookie.setPath("/");
-		response.addCookie(cookie);
+		if (user != null) {
+			passportService.updateAuthKey(user);
+			getSession().removeAttribute(ZConst.SESSION_USER);
+			// 删除cookie的auth_key
+			Cookie cookie = new Cookie("auth_key", user.getAuthKey());
+			cookie.setMaxAge(0);
+			cookie.setPath("/");
+			response.addCookie(cookie);
+		}
 		return "redirect:/toLogin";
 	}
 

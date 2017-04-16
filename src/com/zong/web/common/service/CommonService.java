@@ -1,18 +1,23 @@
 package com.zong.web.common.service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.spreada.utils.chinese.ZHConverter;
 import com.zong.util.BusinessException;
+import com.zong.util.JsoupUtil;
 import com.zong.util.Page;
 import com.zong.util.PageData;
 import com.zong.web.common.dao.CommonMapper;
+import com.zong.zdb.bean.ColumnField;
+import com.zong.zdb.bean.Table;
+import com.zong.zdb.service.JdbcCodeService;
 
 /**
  * @desc 通用业务层
@@ -24,10 +29,8 @@ public class CommonService {
 	private static final ZHConverter converter = ZHConverter.getInstance(ZHConverter.SIMPLIFIED);
 	@Autowired
 	private CommonMapper commonMapper;
-	@Value("${jdbc.driverClassName}")
-	private String driverClassName;
-	@Value("${jdbc.url}")
-	private String url;
+	@Autowired
+	private JdbcCodeService codeService;
 
 	@Transactional(rollbackFor = Exception.class)
 	public void add(String table, PageData pd) throws BusinessException {
@@ -78,51 +81,59 @@ public class CommonService {
 		return commonMapper.findPage(page);
 	}
 
-	public List<PageData> findTables() {
-		String database = url.split("\\?")[0].substring(url.lastIndexOf("/") + 1);
-		String sql = "select table_name,table_comment,table_rows from information_schema.tables where table_schema='"
-				+ database + "' and table_type='BASE TABLE'";
-		List<PageData> datas = commonMapper.executeSql(sql);
-		return datas;
+	public void createTable(String createTableSql) {
+		commonMapper.executeSql(createTableSql);
 	}
 
-	public PageData findTable(String tableName) {
-		String database = url.split("\\?")[0].substring(url.lastIndexOf("/") + 1);
-		String sql = "select table_name,table_comment,table_rows from information_schema.tables where table_schema='"
-				+ database + "' and table_type='BASE TABLE' and table_name='" + tableName + "'";
-		List<PageData> datas = commonMapper.executeSql(sql);
-		if (!datas.isEmpty()) {
-			return datas.get(0);
-		}
-		return null;
-	}
-
-	public void createTable(String tableName, PageData columns) {
-		String sql = "create table " + tableName + "(";
-		for (Object key : columns.keySet()) {
-			sql += key + " " + columns.getString(key) + ",";
-		}
-		sql = sql.substring(0, sql.lastIndexOf(",")) + ")";
-		commonMapper.executeSql(sql);
-	}
-
-	public void alterTable(String tableName, PageData columns) {
-		String database = url.split("\\?")[0].substring(url.lastIndexOf("/") + 1);
-		String sql = "select * from information_schema.columns where table_schema='" + database + "' and table_name='"
-				+ tableName + "'";
-		List<PageData> datas = commonMapper.executeSql(sql);
-		for (Object key : columns.keySet()) {
-			boolean flag = true;
-			for (PageData data : datas) {
-				if (data.get("COLUMN_NAME").equals(key)) {
-					flag = false;
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void alterTable(PageData ruleData) {
+		String tableName = JsoupUtil.storeTable(ruleData.getString(JsoupUtil.CRAW_STORE_TABLE));
+		Table table = codeService.currentTable(tableName);
+		List<ColumnField> list = table.getNormalColumns();
+		List<Map> list_ext = (List<Map>) ruleData.get("list_ext");
+		List<Map> content_ext = (List<Map>) ruleData.get("content_ext");
+		List<Map> columns = new ArrayList();
+		columns.addAll(list_ext);
+		columns.addAll(content_ext);
+		for (Map data : columns) {
+			String column = data.get(JsoupUtil.RULE_EXT_NAME).toString();
+			if (!column.equals(JsoupUtil.STORE_TABLE_COL_ID) && !column.equals(JsoupUtil.STORE_TABLE_COL_TITLE)
+					&& !column.equals(JsoupUtil.STORE_TABLE_COL_URL)
+					&& !column.equals(JsoupUtil.STORE_TABLE_COL_CONTENT)
+					&& !column.equals(JsoupUtil.STORE_TABLE_COL_CREATE_TIME)
+					&& !column.equals(JsoupUtil.STORE_TABLE_COL_UPDATE_TIME)) {
+				String desc = data.get(JsoupUtil.RULE_EXT_DESC).toString();
+				boolean flag = true;
+				for (ColumnField col : list) {
+					if (col.getColumn().equals(column)) {
+						flag = false;
+						if (!desc.equals(col.getRemark())) {
+							commonMapper.executeSql("alter table " + tableName + " modify " + column
+									+ " varchar(500) COMMENT '" + desc + "';");
+						}
+					}
+				}
+				if (flag) {
+					commonMapper.executeSql(
+							"alter table " + tableName + " add " + column + " varchar(500) COMMENT '" + desc + "';");
 				}
 			}
-			if (flag) {
-				commonMapper.executeSql(
-						"alter table " + tableName + " add " + key.toString() + " " + columns.getString(key));
-			}
 		}
+		if (!table.getComment().equals(ruleData.getString("name"))) {
+			commonMapper.executeSql("alter table " + tableName + " comment '" + ruleData.getString("name") + "';");
+		}
+	}
+
+	public Table showTable(String tableName) throws Exception {
+		return codeService.currentTable(tableName);
+	}
+
+	public List<Table> showTables() throws Exception {
+		return codeService.currentTables();
+	}
+
+	public List<ColumnField> showTableColumns(String tableName) throws Exception {
+		return codeService.currentTableColumns(tableName);
 	}
 
 }

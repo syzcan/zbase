@@ -25,16 +25,17 @@
 </div>
 <script type="text/javascript">
 function startDown(){
-	//没有可下载的跳到下一页
+	//没有可解析的跳到下一页
 	if($('#dataList span.bg-green').size()==0){
 		//$('.pagination li.active').next().children().click();
 		location.href=location.href;
 		return;
 	}
 	$('#msg').html('等待:'+$('#dataList span.bg-green').size());
-	var $cur = $('#dataList span.bg-green').first().removeClass('bg-green').addClass('bg-yellow').text('正在下载..');
-	$.get('${ctx}/crawler/rule/data.json?id=${param.rule_id}').done(function(data){
+	var $cur = $('#dataList span.bg-green').first().removeClass('bg-green').addClass('bg-yellow').text('正在解析..');
+	$.get('${ctx}/craw/rule/data.json?id=${param.rule_id}').done(function(data){
 		var rule = {};
+		rule.js_enabled = '${param.js_enabled}';
 		rule.craw_url = $cur.attr('data-url');
 		rule.craw_store = '${param.craw_store}';
 		$.each(data.rule.content_ext, function(i, n) {
@@ -42,16 +43,16 @@ function startDown(){
 					+ n.rule_ext_type + "["+ n.rule_ext_reg + "];" + n.rule_ext_attr + ";" + n.rule_ext_mode;
 		});
 		var downer = $.ajax({
-			url:'${ctx}/crawler/detail.json',
+			url:'${ctx}/craw/crawDetail.json',
 			type:'post',
 			data:rule,
 			dataType:'json',
 			timeout : 10000, //超时时间设置，单位毫秒
 			success:function(data){
 				if(data.errMsg=='success'){
-					$('#dataList span.bg-yellow').removeClass('bg-yellow').addClass('bg-blue').text('已下载');
+					$('#dataList span.bg-yellow').removeClass('bg-yellow').addClass('bg-blue').text('已解析');
 				}else{
-					$('#dataList span.bg-yellow').removeClass('bg-yellow').addClass('bg-red').text('下载失败！');
+					$('#dataList span.bg-yellow').removeClass('bg-yellow').addClass('bg-red').text('解析失败！');
 				}
 				startDown();
 			},
@@ -71,6 +72,6 @@ if ('${fn:length(stores)}' != '0') {
 	startDown();
 	layer.load(1,{shade: 0});
 }else{
-	layer.alert('没有需要下载的数据！')
+	layer.alert('没有需要解析的数据！')
 }
 </script>

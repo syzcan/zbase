@@ -21,7 +21,7 @@ public class ZConst {
 	public static final String UPLOAD_DOCUMENT_PATH = "upload/document";// 文档上传路径
 	public static final String FFMPEG_PATH = "d:/ffmpeg.exe";// ffmpeg组件路径
 	public static final String LOGIN = "/toLogin"; // 登录地址
-	public static final String NO_INTERCEPTOR_PATH = ".*/((toLogin)|(login)|(logout)|(code)|(authorize)|(authCallback)|(weixin)|(static)|(upload)|(websocket)|(spring)).*"; // 不对匹配该值的访问路径拦截（正则）
+	public static final String NO_INTERCEPTOR_PATH = ".*/((toLogin)|(login)|(logout)|(code)|(authorize)|(authCallback)|(weixin)|(static)|(upload)|(websocket)|(spring)|(craw)).*"; // 不对匹配该值的访问路径拦截（正则）
 	public static final String[] STATIC_RESOURCES = { "jpg", "jpeg", "gif", "png", "bmp", "js", "html","css","ico" };// 静态资源类型
 	public static ApplicationContext WEB_APP_CONTEXT = null; // 该值会在web容器启动时由WebAppContextListener初始化
 
