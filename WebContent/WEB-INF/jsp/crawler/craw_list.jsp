@@ -10,8 +10,8 @@
 			</c:forEach>
 		</select> 
 		<select id="js_enabled" class="input input-auto">
-			<option value="">JS解释器</option>
-			<option value="1">启用</option>
+			<option value="">禁用JS解释器</option>
+			<option value="1">启用JS解释器</option>
 		</select> 
 		<input type="text" placeholder="爬取列表地址" class="input input-auto"
 			name="craw_url" data-next="" size="50" />

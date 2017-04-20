@@ -85,8 +85,9 @@ function toCrawDetail(js_enabled){
 	openFrame('解析详情','${ctx}/craw/toCrawDetail?rule_id='+rule_id+'&craw_store='+craw_store+'&js_enabled='+js_enabled,'1000px','600px');
 }
 function toView(id){
+	var rule_id = $('select[name="craw_store"]').find("option:selected").attr('data-id');
 	var craw_store = $('select[name="craw_store"]').find("option:selected").val();
-	location.href = '${ctx}/craw/store/view?craw_store='+craw_store+'&id='+id;
+	location.href = '${ctx}/craw/store/view?rule_id='+rule_id+'&craw_store='+craw_store+'&id='+id;
 }
 function crawDetail(craw_url,js_enabled){
 	var rule_id = $('select[name="craw_store"]').find("option:selected").attr('data-id');

@@ -1,5 +1,6 @@
 package com.zong.web.common.controller;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -11,12 +12,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.zong.base.BaseController;
 import com.zong.util.JsoupUtil;
 import com.zong.util.Page;
 import com.zong.util.PageData;
 import com.zong.web.common.dao.CommonMapper;
 import com.zong.web.common.service.CommonService;
+import com.zong.zdb.bean.ColumnField;
 
 @Controller
 @RequestMapping("/craw")
@@ -136,7 +139,7 @@ public class CrawController extends BaseController {
 			String keyword = (String) page.getPd().remove("keyword");
 			String craw_store = (String) page.getPd().remove(JsoupUtil.CRAW_STORE_TABLE);
 			if (keyword != null) {
-				page.getPd().put("like", new PageData("content", keyword));
+				page.getPd().put("like", new PageData("title", keyword));
 			}
 			if (craw_store == null) {
 				if (!rules.isEmpty()) {
@@ -150,7 +153,14 @@ public class CrawController extends BaseController {
 				craw_store = JsoupUtil.storeTable(craw_store);
 			}
 			page.setTable(craw_store);
-			String[] columns = { "id", "title", "url", "status" };
+			List<ColumnField> columnFields = commonService.showTableColumns(craw_store);
+			List<String> list = new ArrayList<String>();
+			for (ColumnField columnField : columnFields) {
+				if (!columnField.getColumn().equals(JsoupUtil.STORE_TABLE_COL_CONTENT)) {
+					list.add(columnField.getColumn());
+				}
+			}
+			String[] columns = list.toArray(new String[list.size()]);
 			page.getPd().put("columns", columns);
 			List<PageData> stores = commonService.findPage(page);
 			model.addAttribute("stores", stores);
@@ -163,12 +173,22 @@ public class CrawController extends BaseController {
 	}
 
 	@RequestMapping(value = "/store/view")
-	public String store(String craw_store, String id, Model model) {
+	public String store(String rule_id, String craw_store, String id, Model model) {
 		try {
 			String tableName = JsoupUtil.storeTable(craw_store);
 			PageData store = commonService.load(tableName, new PageData("id", id));
 			model.addAttribute("table", commonService.showTable(tableName));
 			model.addAttribute("store", store);
+			PageData rule = commonService.load(JsoupUtil.CRAW_RULE_TABLE, new PageData("id", rule_id));
+			if (rule != null) {
+				rule.put("list_ext",
+						objectMapper.readValue(rule.getString("list_ext"), new TypeReference<List<PageData>>() {
+						}));
+				rule.put("content_ext",
+						objectMapper.readValue(rule.getString("content_ext"), new TypeReference<List<PageData>>() {
+						}));
+				model.addAttribute("rule", rule);
+			}
 		} catch (Exception e) {
 			logger.error(e.toString(), e);
 			model.addAttribute("errMsg", "系统错误！");
