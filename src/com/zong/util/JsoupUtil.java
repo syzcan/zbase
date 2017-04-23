@@ -215,7 +215,7 @@ public class JsoupUtil {
 	}
 
 	/**
-	 * 处理cssQuery查询赛选:eq，实现跟jquery一样用法
+	 * 处理cssQuery查询筛选:eq，实现跟jquery一样用法
 	 * 
 	 * @param element
 	 * @param cssQuery
@@ -445,4 +445,27 @@ public class JsoupUtil {
 	public static String storeTable(String tableName) {
 		return CRAW_STORE_TABLE + "_" + tableName;
 	}
+
+	public static List<PageData> queueDatas = new ArrayList<PageData>();
+
+	/**
+	 * 获取当前craw_store的队列
+	 * 
+	 * @param craw_store
+	 */
+	public static Queue crawQueue(String craw_store) {
+		Queue queue = null;
+		for (PageData data : queueDatas) {
+			if (craw_store.equals(data.getString("craw_store"))) {
+				queue = (Queue) data.get("queue");
+				break;
+			}
+		}
+		if (queue == null) {
+			queue = new Queue();
+			queueDatas.add(new PageData("craw_store", craw_store).put("queue", queue));
+		}
+		return queue;
+	}
+
 }

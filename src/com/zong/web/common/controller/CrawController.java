@@ -72,6 +72,9 @@ public class CrawController extends BaseController {
 		} catch (Exception e) {
 			logger.error(e.toString(), e);
 			result = new PageData("errMsg", "系统错误");
+			if (e.toString().indexOf("Status=404") > -1) {
+				result = new PageData("errMsg", "系统错误：Status=404");
+			}
 		}
 		return result;
 	}
@@ -99,15 +102,44 @@ public class CrawController extends BaseController {
 		return "/crawler/craw_list";
 	}
 
+	@RequestMapping(value = "/toCrawTab")
+	public String toCrawTab(Model model) {
+		return "/crawler/craw_tab";
+	}
+
+	/**
+	 * 详情抓取使用队列，把待抓取数据存到队列，可实现多线程
+	 * 
+	 * @param craw_store
+	 * @param model
+	 * @return
+	 */
 	@RequestMapping(value = "/toCrawDetail")
 	public String toCrawDetail(String craw_store, Model model) {
-		Page page = new Page();
-		page.setTable(JsoupUtil.storeTable(craw_store));
-		String[] columns = { "id", "title", "url", "status" };
-		page.getPd().put("status", 1).put("columns", columns);
-		List<PageData> stores = commonService.findPage(page);
+		List<PageData> stores = new ArrayList<PageData>();
+		// 先查询队列是否还有数据，没有从数据库取
+		if (JsoupUtil.crawQueue(craw_store).isEmpty()) {
+			Page page = new Page();
+			page.setTable(JsoupUtil.storeTable(craw_store));
+			// 一次全部取出来，只查询关键字段
+			page.setShowCount(10000000);
+			String[] columns = { "id", "title", "url", "status" };
+			// status=1待抓取的数据
+			page.getPd().put("status", 1).put("columns", columns);
+			List<PageData> list = commonService.findPage(page);
+			// 存入队列
+			for (PageData data : list) {
+				JsoupUtil.crawQueue(craw_store).add(data);
+			}
+		}
+		// 一次取15条出来
+		for (int i = 1; i <= 15; i++) {
+			if (!JsoupUtil.crawQueue(craw_store).isEmpty()) {
+				stores.add(JsoupUtil.crawQueue(craw_store).remove());
+			}
+		}
 		model.addAttribute("stores", stores);
-		model.addAttribute("page", page);
+		model.addAttribute("total", JsoupUtil.crawQueue(craw_store).size());
 		return "/crawler/craw_detail";
 	}
 

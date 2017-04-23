@@ -1,13 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=utf-8"
 	pageEncoding="utf-8"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ include file="/WEB-INF/jsp/common/style.jsp"%>
-<div class="padding-big">
+<div>
 	<table class="table text-default table-condensed">
 		<thead>
 			<tr>
 				<th width="50">序号</th>
 				<th width="300">title</th>
-				<th><span class="badge bg-red">总数:${page.totalResult }</span></th>
+				<th width="300"><span class="badge bg-red">总数:${total }</span></th>
 				<th width="80"><span class="badge bg-red" id="msg"></span></th>
 			</tr>
 		</thead>
@@ -15,8 +16,8 @@
 			<c:forEach items="${stores }" var="store" varStatus="vs">
 				<tr>
 					<td>${vs.count }</td>
-					<td>${store.title }</td>
-					<td><a target="_blank" href="${store.url }">${store.url }</a></td>
+					<td>${fn:length(store.title)>30?fn:substring(store.title,0,30):store.title }</td>
+					<td><a target="_blank" href="${store.url }">${fn:length(store.url)>45?fn:substring(store.url,0,45):store.url }</a></td>
 					<td><span class="badge bg-green" data-url="${store.url }">等待</span></td>
 				</tr>
 			</c:forEach>
@@ -72,6 +73,6 @@ if ('${fn:length(stores)}' != '0') {
 	startDown();
 	layer.load(1,{shade: 0});
 }else{
-	layer.alert('没有需要解析的数据！')
+	layer.alert('没有需要解析的数据！',{shade: 0})
 }
 </script>

@@ -8,7 +8,7 @@
 </script>
 <input type="hidden" name="currentPage" value="${page.currentPage}" />
 <!-- 分页 -->
-<div class="margin">
+<div>
 	<ul class="pagination border-main">
 		<c:if test="${page.currentPage!=1&&page.totalPage!=0}">
 			<li><a href="javascript:;" onclick="jumpPage(this);" data-num="1" title="首页">«</a></li>

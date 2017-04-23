@@ -32,7 +32,7 @@
 					<option data-id="${rule.id }" value="${rule.craw_store }" ${pd.craw_store==rule.craw_store?'selected':'' }>${rule.name }</option>
 					</c:forEach>
 					</select>
-					<input name="keyword" value="${pd.keyword }" type="text" style="margin-left: 50px" class="input input-auto border-main" placeholder="输入关键字"> 
+					<input name="keyword" value="${pd.keyword }" type="text" class="input input-auto border-main" placeholder="输入关键字"> 
 					<input type="submit" value="搜索" class="button  bg-main" style="border-left: 0 none;margin-left: -10px;border-top-left-radius:0;border-bottom-left-radius:0" />
 				</form>
 			</div>
@@ -82,7 +82,9 @@
 function toCrawDetail(js_enabled){
 	var rule_id = $('select[name="craw_store"]').find("option:selected").attr('data-id');
 	var craw_store = $('select[name="craw_store"]').find("option:selected").val();
-	openFrame('解析详情','${ctx}/craw/toCrawDetail?rule_id='+rule_id+'&craw_store='+craw_store+'&js_enabled='+js_enabled,'1000px','600px');
+	var index = layer.load(0);
+	openFrame('解析详情','${ctx}/craw/toCrawTab?rule_id='+rule_id+'&craw_store='+craw_store+'&js_enabled='+js_enabled,'1000px','610px');
+	layer.close(index);
 }
 function toView(id){
 	var rule_id = $('select[name="craw_store"]').find("option:selected").attr('data-id');

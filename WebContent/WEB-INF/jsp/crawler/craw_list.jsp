@@ -62,18 +62,20 @@
 					$.post('${ctx}/craw/crawList.json', rule).done(
 							function(data) {
 								$('tbody').html('');
-								$.each(data.data, function(i, n) {
-									$('tbody').append(
-											'<tr><td>'+(i+1)+'</td><td>' + n.title + '</td><td><a target="_blank" href="'
-													+ n.url + '">'+n.url+'</a></td></tr>');
-								});
+								if(data.errMsg=='success'){
+									$.each(data.data, function(i, n) {
+										$('tbody').append(
+												'<tr><td>'+(i+1)+'</td><td>' + n.title + '</td><td><a target="_blank" href="'
+														+ n.url + '">'+n.url+'</a></td></tr>');
+									});
+									if (data.craw_next != null) {
+										$('input[name="craw_url"]').attr('data-next', data.craw_next);
+									}
+								}
 								if($('tbody').html()==''){
 									$('tbody').html('<tr><td>没有数据</td></tr>');
 								}
 								layer.close(layer.index);
-								if (data.craw_next != null) {
-									$('input[name="craw_url"]').attr('data-next', data.craw_next);
-								}
 								next();
 							});
 				});
